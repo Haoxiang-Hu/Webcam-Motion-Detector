@@ -29,6 +29,7 @@ while True:
         (x,y,w,h) = cv2.boundingRect(contour)
         cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 3)
 
+    cv2.imshow("First Frame", first_frame)
     cv2.imshow("Gray Frame", gray) #打开一个窗口显示捕获的画面，每次使用imshow都需要记得下面需要一个destroyAllWindows()关闭窗口
     cv2.imshow("Delta Frame", delta_frame)
     cv2.imshow("Threshold Frame", thresh_frame)

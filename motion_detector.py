@@ -1,19 +1,19 @@
-import cv2
-import time
+import cv2, time, pandas
 from datetime import datetime
 
-first_frame = None
-status_list = [None,None] #Add two "None" to make sure the following if loop will not out of index
-times = []
+first_frame = None #First frame, like a reference.
+status_list = [None,None] #Add status list, two "None" to make sure the following if loop will not out of index
+times = [] #Time list
 video = cv2.VideoCapture(0)
+df = pandas.DataFrame(columns=["Start","End"]) #The csv file frame structure
 
-#Turn on the camera for few seconds.
+#Turn on the camera for few seconds. Warm up the camera. Macbook system has is issue. 
 i=100
 while i>0:
     i = i-1
     check, frame_1 = video.read()
 
-while True:
+while True: #While loop makes every frames coherent
     check, frame = video.read()
     status = 0
     gray =cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #Transfer frame to a gray color base picture
@@ -23,7 +23,7 @@ while True:
         first_frame = gray
         continue
 
-    #Add frames
+    #Add delta_frame and thresh_frame
     delta_frame = cv2.absdiff(first_frame,gray)
     thresh_frame = cv2.threshold(delta_frame, 30, 255, cv2.THRESH_BINARY)[1]
     thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
@@ -47,12 +47,14 @@ while True:
     if status_list[-1] == 0 and status_list[-2] == 1:
         times.append(datetime.now())
 
-    #打开一个窗口显示捕获的画面，每次使用imshow都需要记得下面需要一个destroyAllWindows()关闭窗口
+    #Crate a camera window.
+    #Remanber! every time after use imshow(), we need a destroyAllWindows() to close all windows.
+    #Whatever how many imshow() used, just need one destroyAllWindows() to close all windows
     cv2.imshow("Delta Frame", delta_frame)
     cv2.imshow("Threshold Frame", thresh_frame)
     cv2.imshow("Color Frame", frame)
 
-    key = cv2.waitKey(1)
+    key = cv2.waitKey(1) 
 
     if key == ord('q'):
         if status == 1: #if quit when the object is detected, it still has a quit time.
@@ -61,6 +63,11 @@ while True:
 
 print(status_list)
 print(times)
+
+for i in range(0, len(times), 2):  #Range is from 0 to the length of the times[], step is 2.
+    df = df.append({"Start" : times[i], "End" : times[i+1]}, ignore_index = True) #Put i value in start column, put i+1 value in end column
+
+df.to_csv("Times.csv") #Export the data frame to a csv file
 
 video.release()  
 

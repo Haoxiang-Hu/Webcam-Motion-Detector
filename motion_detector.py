@@ -3,9 +3,8 @@ import time
 from datetime import datetime
 
 first_frame = None
-status_list = []
+status_list = [None,None] #Add two "None" to make sure the following if loop will not out of index
 times = []
-
 video = cv2.VideoCapture(0)
 
 #Turn on the camera for few seconds.
@@ -17,7 +16,7 @@ while i>0:
 while True:
     check, frame = video.read()
     status = 0
-    gray =cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #把frame转化为一个图片
+    gray =cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #Transfer frame to a gray color base picture
     gray =cv2.GaussianBlur(gray,(21,21),0)
 
     if first_frame is None:
@@ -45,11 +44,10 @@ while True:
 
     if status_list[-1] == 1 and status_list[-2] == 0:
         times.append(datetime.now())
-    if status_list[-1] == 1 and status_list[-2] == 1:
+    if status_list[-1] == 0 and status_list[-2] == 1:
         times.append(datetime.now())
 
-    cv2.imshow("First Frame", first_frame)
-    cv2.imshow("Gray Frame", gray) #打开一个窗口显示捕获的画面，每次使用imshow都需要记得下面需要一个destroyAllWindows()关闭窗口
+    #打开一个窗口显示捕获的画面，每次使用imshow都需要记得下面需要一个destroyAllWindows()关闭窗口
     cv2.imshow("Delta Frame", delta_frame)
     cv2.imshow("Threshold Frame", thresh_frame)
     cv2.imshow("Color Frame", frame)
@@ -57,6 +55,8 @@ while True:
     key = cv2.waitKey(1)
 
     if key == ord('q'):
+        if status == 1: #if quit when the object is detected, it still has a quit time.
+            times.append(datetime.now())
         break
 
 print(status_list)
